@@ -1,0 +1,364 @@
+import 'dart:io';
+import 'package:akar_project/auth_screens/profile_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
+
+// import 'login_screen.dart';
+
+class AddStore extends StatefulWidget {
+  const AddStore({Key? key}) : super(key: key);
+
+  @override
+  _AddStoreState createState() => _AddStoreState();
+}
+
+class _AddStoreState extends State<AddStore> {
+  final _auth = FirebaseAuth.instance;
+  final _formKey = GlobalKey<FormState>();
+  late String imageUrl;
+
+  final TextEditingController regionController = new TextEditingController();
+  final TextEditingController cityController = new TextEditingController();
+  final TextEditingController priceController = new TextEditingController();
+  final TextEditingController lengthController = new TextEditingController();
+  final TextEditingController widthController = new TextEditingController();
+  final TextEditingController surfaceController = new TextEditingController();
+  final TextEditingController descriptionController =
+      new TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    final region = TextFormField(
+      autofocus: false,
+      controller: regionController,
+      keyboardType: TextInputType.text,
+      validator: (value) {
+        RegExp regex = new RegExp(r'^.{4,}$');
+        if (value!.isEmpty) {
+          return ("Region can't br empty");
+        }
+        if (!regex.hasMatch(value)) {
+          return ("Please Enter A Valid Region(Min. 4 Character )");
+        }
+        return null;
+      },
+      onSaved: (value) {
+        regionController.text = value!;
+      },
+      textInputAction: TextInputAction.next,
+      decoration: InputDecoration(
+          contentPadding: EdgeInsets.fromLTRB(20, 16, 20, 16),
+          hintText: "Region",
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(30))),
+    );
+    final city = TextFormField(
+      autofocus: false,
+      controller: cityController,
+      keyboardType: TextInputType.text,
+      validator: (value) {
+        RegExp regex = new RegExp(r'^.{4,}$');
+        if (value!.isEmpty) {
+          return ("Full Name can't br empty");
+        }
+        if (!regex.hasMatch(value)) {
+          return ("Please Enter A Valid Full Name(Min. 4 Character )");
+        }
+        return null;
+      },
+      onSaved: (value) {
+        cityController.text = value!;
+      },
+      textInputAction: TextInputAction.next,
+      decoration: InputDecoration(
+          contentPadding: EdgeInsets.fromLTRB(20, 16, 20, 16),
+          hintText: "ville",
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(30))),
+    );
+
+    final price = TextFormField(
+      autofocus: false,
+      controller: priceController,
+      keyboardType: TextInputType.number,
+      validator: (value) {
+        RegExp regex = new RegExp("^[0-9]");
+        if (value!.isEmpty) {
+          return ("Phone Number can't be empty");
+        }
+        if (!regex.hasMatch(value)) {
+          return ("Please Enter A Valid Phone Number");
+        }
+        return null;
+      },
+      onSaved: (value) {
+        priceController.text = value!;
+      },
+      textInputAction: TextInputAction.next,
+      decoration: InputDecoration(
+          contentPadding: EdgeInsets.fromLTRB(20, 16, 20, 16),
+          hintText: "Prix",
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(30))),
+    );
+
+    final length = TextFormField(
+      autofocus: false,
+      controller: lengthController,
+      keyboardType: TextInputType.number,
+      validator: (value) {
+        RegExp regex = new RegExp("^[0-9]");
+        if (value!.isEmpty) {
+          return ("Phone Number can't be empty");
+        }
+        if (!regex.hasMatch(value)) {
+          return ("Please Enter A Valid Phone Number");
+        }
+        return null;
+      },
+      onSaved: (value) {
+        lengthController.text = value!;
+      },
+      textInputAction: TextInputAction.next,
+      decoration: InputDecoration(
+          contentPadding: EdgeInsets.fromLTRB(20, 16, 20, 16),
+          hintText: "Longeure",
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(30))),
+    );
+    final width = TextFormField(
+      autofocus: false,
+      controller: widthController,
+      keyboardType: TextInputType.number,
+      validator: (value) {
+        RegExp regex = new RegExp("^[0-9]");
+        if (value!.isEmpty) {
+          return ("Phone Number can't be empty");
+        }
+        if (!regex.hasMatch(value)) {
+          return ("Please Enter A Valid Phone Number");
+        }
+        return null;
+      },
+      onSaved: (value) {
+        widthController.text = value!;
+      },
+      textInputAction: TextInputAction.next,
+      decoration: InputDecoration(
+          contentPadding: EdgeInsets.fromLTRB(20, 16, 20, 16),
+          hintText: "Largeure",
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(30))),
+    );
+
+    final surface = TextFormField(
+      autofocus: false,
+      controller: surfaceController,
+      keyboardType: TextInputType.number,
+      validator: (value) {
+        RegExp regex = new RegExp("^[0-9]");
+        if (value!.isEmpty) {
+          return ("Phone Number can't be empty");
+        }
+        if (!regex.hasMatch(value)) {
+          return ("Please Enter A Valid Phone Number");
+        }
+        return null;
+      },
+      onSaved: (value) {
+        surfaceController.text = value!;
+      },
+      textInputAction: TextInputAction.next,
+      decoration: InputDecoration(
+          contentPadding: EdgeInsets.fromLTRB(20, 16, 20, 16),
+          hintText: "Surface",
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(30))),
+    );
+
+    final description = TextFormField(
+      autofocus: false,
+      controller: descriptionController,
+      keyboardType: TextInputType.multiline,
+      validator: (value) {
+        RegExp regex = new RegExp(r'^.{4,}$');
+        if (value!.isEmpty) {
+          return ("Full Name can't br empty");
+        }
+        if (!regex.hasMatch(value)) {
+          return ("Please Enter A Valid Full Name(Min. 4 Character )");
+        }
+        return null;
+      },
+      onSaved: (value) {
+        descriptionController.text = value!;
+      },
+      textInputAction: TextInputAction.next,
+      decoration: InputDecoration(
+          contentPadding: EdgeInsets.fromLTRB(20, 16, 20, 16),
+          hintText: "Description",
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(30))),
+    );
+
+    final signUpButton = Material(
+      elevation: 5,
+      borderRadius: BorderRadius.circular(30),
+      color: Colors.indigo[900],
+      child: MaterialButton(
+        padding: EdgeInsets.fromLTRB(20, 15, 10, 15),
+        minWidth: MediaQuery.of(context).size.width,
+        onPressed: () {
+          addStore();
+        },
+        child: Text(
+          "Ajouter",
+          textAlign: TextAlign.center,
+          style: TextStyle(
+              fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+      ),
+    );
+
+    return Scaffold(
+        appBar: AppBar(
+          title: Text("Ajouter Terrain"),
+          centerTitle: true,
+          backgroundColor: Colors.indigo[900],
+          elevation: 0,
+          leading: IconButton(
+            icon: Icon(
+              Icons.arrow_back_ios,
+              color: Colors.white,
+            ),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ),
+        backgroundColor: Colors.indigo[900],
+        body: Center(
+          child: SingleChildScrollView(
+            child: Container(
+              color: Colors.white,
+              child: Padding(
+                padding: const EdgeInsets.all(36.0),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: <Widget>[
+                      SizedBox(
+                        height: 16,
+                      ),
+                      region,
+                      SizedBox(
+                        height: 16,
+                      ),
+                      city,
+                      SizedBox(
+                        height: 16,
+                      ),
+                      price,
+                      SizedBox(
+                        height: 16,
+                      ),
+                      length,
+                      SizedBox(
+                        height: 16,
+                      ),
+                      width,
+                      SizedBox(
+                        height: 16,
+                      ),
+                      surface,
+                      SizedBox(
+                        height: 16,
+                      ),
+                      description,
+                      SizedBox(
+                        height: 25,
+                      ),
+                      RaisedButton(
+                        child: Text("Upload Image",
+                            style: TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15)),
+                        onPressed: () => uploadImage(),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(18.0),
+                            side: BorderSide(color: Colors.white)),
+                        elevation: 5.0,
+                        color: Colors.white,
+                        textColor: Colors.white,
+                        padding: EdgeInsets.fromLTRB(120, 12, 120, 12),
+                        splashColor: Colors.grey,
+                      ),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      signUpButton,
+                      SizedBox(
+                        height: 5,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ));
+  }
+
+  CollectionReference stores = FirebaseFirestore.instance.collection('stores');
+
+  Future<void> addStore() {
+    User? user = _auth.currentUser;
+    // Call the user's CollectionReference to add a new user
+    return stores
+        .add({
+          'region': regionController.text, // John Doe
+          'city': cityController.text, // Stokes and Sons
+          'price': priceController.text,
+          'length': lengthController.text,
+          'width': widthController.text,
+          'surface': surfaceController.text,
+          'description': descriptionController.text,
+          'image_url': '',
+          'added_by': user!.uid, // 42
+        })
+        .then((value) => Navigator.pushAndRemoveUntil(
+            (context),
+            MaterialPageRoute(builder: (context) => Profile()),
+            (route) => false))
+        .catchError((error) => print("Failed to add houses: $error"));
+  }
+
+  uploadImage() async {
+    final _storage = FirebaseStorage.instance;
+    final _picker = ImagePicker();
+    PickedFile image;
+    await Permission.photos.request();
+    var permissionStatus = await Permission.photos.status;
+
+    if (permissionStatus.isGranted) {
+      image = (await _picker.getImage(source: ImageSource.gallery))!;
+
+      var file = File(image.path);
+      if (image != null) {
+        var snapshot = await _storage
+            .ref()
+            .child('folderName/imageName')
+            .putFile(file)
+            .whenComplete(() => null);
+        var downloadUrl = await snapshot.ref.getDownloadURL();
+        setState(() {
+          imageUrl = downloadUrl;
+        });
+      } else {
+        print("No path received");
+      }
+    } else {
+      print("Permision and try again");
+    }
+  }
+}

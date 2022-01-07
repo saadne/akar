@@ -1,4 +1,5 @@
-import 'package:akar_project/screens/home_screen.dart';
+import 'package:akar_project/auth_screens/bottom_bar_nav.dart';
+import 'package:akar_project/auth_screens/profile_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -13,6 +14,7 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   int _currentIndex = 0;
+
   final _formKey = GlobalKey<FormState>();
 
   final TextEditingController emailController = new TextEditingController();
@@ -136,7 +138,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
-                        Text("Don't have an account ? "),
+                        Text(
+                          "Don't have an account ? ",
+                          style: TextStyle(fontSize: 18),
+                        ),
                         GestureDetector(
                           onTap: () {
                             Navigator.push(
@@ -150,7 +155,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             style: TextStyle(
                                 color: Colors.indigo[900],
                                 fontWeight: FontWeight.w600,
-                                fontSize: 15),
+                                fontSize: 18),
                           ),
                         )
                       ],
@@ -165,24 +170,6 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
       ),
-      // bottomNavigationBar: BottomNavigationBar(
-      //   currentIndex: _currentIndex,
-      //   items: [
-      //     BottomNavigationBarItem(
-      //       icon: Icon(Icons.home),
-      //       label: 'Home',
-      //     ),
-      //     BottomNavigationBarItem(
-      //       icon: Icon(Icons.search),
-      //       label: 'search',
-      //     )
-      //   ],
-      //   onTap: (index) {
-      //     setState(() {
-      //       _currentIndex = index;
-      //     });
-      //   },
-      // ),
     );
   }
 
@@ -193,7 +180,7 @@ class _LoginScreenState extends State<LoginScreen> {
           .then((uid) => {
                 Fluttertoast.showToast(msg: "Login Successful"),
                 Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (context) => HomeScreen()))
+                    MaterialPageRoute(builder: (context) => NavBar()))
               })
           .catchError((e) {
         Fluttertoast.showToast(msg: e!.message);

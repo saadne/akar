@@ -1,5 +1,5 @@
 import 'package:akar_project/models/user_model.dart';
-import 'package:akar_project/screens/home_screen.dart';
+import 'package:akar_project/auth_screens/profile_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -264,9 +264,7 @@ class _RegistrationScreeenState extends State<RegistrationScreeen> {
         .set(userModel.toMap());
     Fluttertoast.showToast(msg: "Account created succesfuly ");
 
-    Navigator.pushAndRemoveUntil(
-        (context),
-        MaterialPageRoute(builder: (context) => HomeScreen()),
-        (route) => false);
+    Navigator.pushAndRemoveUntil((context),
+        MaterialPageRoute(builder: (context) => Profile()), (route) => false);
   }
 }

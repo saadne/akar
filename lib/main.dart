@@ -1,6 +1,7 @@
+import 'package:akar_project/pages/bottomBarNav.dart';
+import 'package:akar_project/auth_screens/login_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import './screens/login_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,7 +16,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Akar Project',
       theme: ThemeData(primarySwatch: Colors.indigo),
-      home: LoginScreen(),
+      home: Dashboard(),
     );
   }
 }
