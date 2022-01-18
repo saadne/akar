@@ -1,6 +1,5 @@
 import 'package:akar_project/auth_screens/add_property.dart';
 import 'package:akar_project/models/user_model.dart';
-import 'package:akar_project/auth_screens/login_screen.dart';
 import 'package:akar_project/auth_screens/apartment_details.dart';
 import 'package:akar_project/auth_screens/house_details.dart';
 import 'package:akar_project/auth_screens/land_details.dart';
@@ -20,29 +19,141 @@ class Profile extends StatefulWidget {
 class _ProfileState extends State<Profile> {
   User? user = FirebaseAuth.instance.currentUser;
   UserModel loggedInUser = UserModel();
+  List _housesList = [];
+  List _apartmentsList = [];
+  List _storesList = [];
+  List _landsList = [];
+  int _housesLength = 0;
+  int _apartmentsLength = 0;
+  int _storesLength = 0;
+  int _landsLength = 0;
+
+  Future getHouses() async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('houses')
+          .get()
+          .then((value) => {
+                value.docs.forEach((element) {
+                  setState(() {
+                    _housesList.add(element.data());
+                  });
+                })
+              });
+    } catch (e) {
+      print(e.toString());
+      return null;
+    }
+  }
+
+  Future getApartment() async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('apartments')
+          .get()
+          .then((value) => {
+                value.docs.forEach((element) {
+                  setState(() {
+                    _apartmentsList.add(element.data());
+                  });
+                })
+              });
+    } catch (e) {
+      print(e.toString());
+      return null;
+    }
+  }
+
+  Future getStores() async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('stores')
+          .get()
+          .then((value) => {
+                value.docs.forEach((element) {
+                  setState(() {
+                    _storesList.add(element.data());
+                  });
+                })
+              });
+    } catch (e) {
+      print(e.toString());
+      return null;
+    }
+  }
+
+  Future getLands() async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('lands')
+          .get()
+          .then((value) => {
+                value.docs.forEach((element) {
+                  setState(() {
+                    _landsList.add(element.data());
+                  });
+                })
+              });
+    } catch (e) {
+      print(e.toString());
+      return null;
+    }
+  }
+
+  Future countDocuments() async {
+    QuerySnapshot _myDoc1 =
+        await FirebaseFirestore.instance.collection('houses').get();
+    List<DocumentSnapshot> _housesCount = _myDoc1.docs;
+    setState(() {
+      _housesLength = _housesCount.length;
+    });
+    QuerySnapshot _myDoc2 =
+        await FirebaseFirestore.instance.collection('apartments').get();
+    List<DocumentSnapshot> _apartmentsCount = _myDoc2.docs;
+    setState(() {
+      _apartmentsLength = _apartmentsCount.length;
+    });
+    QuerySnapshot _myDoc3 =
+        await FirebaseFirestore.instance.collection('lands').get();
+    List<DocumentSnapshot> _landsCount = _myDoc3.docs;
+    setState(() {
+      _landsLength = _landsCount.length;
+    });
+    QuerySnapshot _myDoc4 =
+        await FirebaseFirestore.instance.collection('stores').get();
+    List<DocumentSnapshot> _storesCount = _myDoc4.docs;
+    setState(() {
+      _landsLength = _storesCount.length;
+    }); // Count of Documents in Collection
+  }
 
   @override
   void initState() {
     super.initState();
-    FirebaseFirestore.instance.collection("users").doc(user!.uid).get().then(
-        (value) => {
-              this.loggedInUser = UserModel.fromMap(value.data()),
-              setState(() {})
-            });
+    getApartment();
+    getHouses();
+    getLands();
+    getStores();
+    countDocuments();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: ListView(
-          children: [
-            houseCard(),
-            AppartementCard(),
-            StoreCard(),
-            LandCard(),
-          ],
-        ),
+      body: Container(
+        child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: 1,
+            itemBuilder: (context, index) {
+              return Column(
+                children: [
+                  houseCard(),
+                  AppartementCard(),
+                  StoreCard(),
+                  LandCard(),
+                ],
+              );
+            }),
       ),
       floatingActionButton: new FloatingActionButton(
         onPressed: () {
@@ -55,26 +166,133 @@ class _ProfileState extends State<Profile> {
     );
   }
 
-  Widget houseCard() => Card(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(20),
-            topRight: Radius.circular(20),
+  Widget houseCard() => ListView.builder(
+      shrinkWrap: true,
+      itemCount: _housesLength,
+      itemBuilder: (context, index) {
+        return Card(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
           ),
-        ),
-        child: new InkWell(
+          child: new InkWell(
+              onTap: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => HouseDetails()));
+              },
+              child: Column(
+                children: <Widget>[
+                  ClipRRect(
+                    borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(20),
+                        topRight: Radius.circular(20)),
+                    child: Image.network(
+                      "${_housesList[index]['image_url']}",
+                      height: 150,
+                      width: 1000,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.topLeft,
+                    child: Text(
+                      "Maison - Etage 0${_housesList[index]['floorNumber']}",
+                      style: TextStyle(fontSize: 15),
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Align(
+                      alignment: Alignment.topLeft,
+                      child: RichText(
+                        text: TextSpan(
+                          style: TextStyle(color: Colors.black, fontSize: 36),
+                          children: <TextSpan>[
+                            TextSpan(
+                                text: '${_housesList[index]['price']} ',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 40)),
+                            TextSpan(text: 'MRU'),
+                            TextSpan(text: '/Mois'),
+                          ],
+                        ),
+                        textScaleFactor: 0.5,
+                      )),
+                  SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.topLeft,
+                    child: Text(
+                      "${_housesList[index]['region']} ${_housesList[index]['city']}",
+                      style: TextStyle(fontSize: 15),
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Text(
+                        "${_housesList[index]['rooms']} ",
+                        style: TextStyle(fontSize: 20),
+                      ),
+                      Icon(FontAwesomeIcons.bed, size: 20),
+                      SizedBox(width: 43),
+                      Text(
+                        "${_housesList[index]['kitchen']} ",
+                        style: TextStyle(fontSize: 20),
+                      ),
+                      Icon(Icons.kitchen, size: 20),
+                      SizedBox(width: 43),
+                      Text(
+                        "${_housesList[index]['bathroom']} ",
+                        style: TextStyle(fontSize: 20),
+                      ),
+                      Icon(FontAwesomeIcons.bath, size: 22),
+                      SizedBox(width: 43),
+                      Text(
+                        "${_housesList[index]['garage']} ",
+                        style: TextStyle(fontSize: 20),
+                      ),
+                      Icon(Icons.garage, size: 20),
+                      SizedBox(width: 43),
+                      Text(
+                        "${_housesList[index]['surface']} ",
+                        style: TextStyle(fontSize: 20),
+                      ),
+                      Icon(Icons.space_dashboard, size: 20),
+                    ],
+                  ),
+                  SizedBox(height: 8),
+                ],
+              )),
+        );
+      });
+
+  Widget AppartementCard() => ListView.builder(
+      shrinkWrap: true,
+      itemCount: _apartmentsLength,
+      itemBuilder: (context, index) {
+        return Card(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+          ),
+          child: new InkWell(
             onTap: () {
               Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => HouseDetails()));
+                  MaterialPageRoute(builder: (context) => ApartmentDetails()));
             },
             child: Column(
-              children: <Widget>[
+              children: [
+                SizedBox(height: 8),
                 ClipRRect(
                   borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(20),
                       topRight: Radius.circular(20)),
-                  child: Image.asset(
-                    "assets/pexels-photo-186077.jpeg",
+                  child: Image.network(
+                    "${_apartmentsList[index]['image_url']}",
                     height: 150,
                     width: 1000,
                     fit: BoxFit.cover,
@@ -84,7 +302,7 @@ class _ProfileState extends State<Profile> {
                 Align(
                   alignment: Alignment.topLeft,
                   child: Text(
-                    "Maison - Etage 02",
+                    "Apartement - Etage 0${_apartmentsList[index]['Number_floor']}",
                     style: TextStyle(fontSize: 15),
                   ),
                 ),
@@ -96,7 +314,7 @@ class _ProfileState extends State<Profile> {
                         style: TextStyle(color: Colors.black, fontSize: 36),
                         children: <TextSpan>[
                           TextSpan(
-                              text: '30 000 ',
+                              text: '${_apartmentsList[index]['price']} ',
                               style: TextStyle(
                                   fontWeight: FontWeight.bold, fontSize: 40)),
                           TextSpan(text: 'MRU'),
@@ -109,7 +327,7 @@ class _ProfileState extends State<Profile> {
                 Align(
                   alignment: Alignment.topLeft,
                   child: Text(
-                    "Nouakchott Tevraghe Zeina",
+                    "${_apartmentsList[index]['region']} ${_apartmentsList[index]['city']}",
                     style: TextStyle(fontSize: 15),
                   ),
                 ),
@@ -117,337 +335,250 @@ class _ProfileState extends State<Profile> {
                 Row(
                   children: [
                     Text(
-                      "4 ",
+                      "${_apartmentsList[index]['bathroom']} ",
                       style: TextStyle(fontSize: 20),
                     ),
                     Icon(FontAwesomeIcons.bed, size: 20),
-                    SizedBox(width: 43),
+                    SizedBox(width: 70),
                     Text(
-                      "2 ",
+                      "${_apartmentsList[index]['kitchen']} ",
                       style: TextStyle(fontSize: 20),
                     ),
                     Icon(Icons.kitchen, size: 20),
-                    SizedBox(width: 43),
+                    SizedBox(width: 70),
                     Text(
-                      "3 ",
+                      "${_apartmentsList[index]['bathroom']} ",
                       style: TextStyle(fontSize: 20),
                     ),
-                    Icon(FontAwesomeIcons.bath, size: 22),
-                    SizedBox(width: 43),
+                    Icon(FontAwesomeIcons.bath, size: 20),
+                    SizedBox(width: 70),
                     Text(
-                      "2 ",
-                      style: TextStyle(fontSize: 20),
-                    ),
-                    Icon(Icons.garage, size: 20),
-                    SizedBox(width: 43),
-                    Text(
-                      "400 ",
+                      "${_apartmentsList[index]['surface']} ",
                       style: TextStyle(fontSize: 20),
                     ),
                     Icon(Icons.space_dashboard, size: 20),
                   ],
                 ),
-                SizedBox(height: 8),
+                SizedBox(
+                  height: 8,
+                )
               ],
-            )),
-      );
+            ),
+          ),
+        );
+      });
 
-  Widget AppartementCard() => Card(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(20),
-            topRight: Radius.circular(20),
+  Widget StoreCard() => ListView.builder(
+      shrinkWrap: true,
+      itemCount: _landsLength,
+      itemBuilder: (context, index) {
+        return Card(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
           ),
-        ),
-        child: new InkWell(
-          onTap: () {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (context) => ApartmentDetails()));
-          },
-          child: Column(
-            children: [
-              SizedBox(height: 8),
-              ClipRRect(
-                borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(20),
-                    topRight: Radius.circular(20)),
-                child: Image.asset(
-                  "assets/apartment1.jpg",
-                  height: 150,
-                  width: 1000,
-                  fit: BoxFit.cover,
+          child: new InkWell(
+            onTap: () {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => StoreDetails()));
+            },
+            child: Column(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(20),
+                      topRight: Radius.circular(20)),
+                  child: Image.network(
+                    "${_storesList[index]['image_url']}",
+                    height: 150,
+                    width: 1000,
+                    fit: BoxFit.cover,
+                  ),
                 ),
-              ),
-              SizedBox(height: 8),
-              Align(
-                alignment: Alignment.topLeft,
-                child: Text(
-                  "Apartement - Etage 04",
-                  style: TextStyle(fontSize: 15),
-                ),
-              ),
-              SizedBox(height: 8),
-              Align(
+                SizedBox(height: 8),
+                Align(
                   alignment: Alignment.topLeft,
-                  child: RichText(
-                    text: TextSpan(
-                      style: TextStyle(color: Colors.black, fontSize: 36),
-                      children: <TextSpan>[
-                        TextSpan(
-                            text: '15 000 ',
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 40)),
-                        TextSpan(text: 'MRU'),
-                        TextSpan(text: '/Mois'),
-                      ],
-                    ),
-                    textScaleFactor: 0.5,
-                  )),
-              SizedBox(height: 8),
-              Align(
-                alignment: Alignment.topLeft,
-                child: Text(
-                  "Nouakchott Tevraghe Zeina",
-                  style: TextStyle(fontSize: 15),
+                  child: Text(
+                    "Magazin",
+                    style: TextStyle(fontSize: 15),
+                  ),
                 ),
-              ),
-              SizedBox(height: 8),
-              Row(
-                children: [
-                  Text(
-                    "4 ",
-                    style: TextStyle(fontSize: 20),
+                SizedBox(height: 8),
+                Align(
+                    alignment: Alignment.topLeft,
+                    child: RichText(
+                      text: TextSpan(
+                        style: TextStyle(color: Colors.black, fontSize: 36),
+                        children: <TextSpan>[
+                          TextSpan(
+                              text: '${_storesList[index]['price']} ',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 40)),
+                          TextSpan(text: 'MRU'),
+                          TextSpan(text: '/Mois'),
+                        ],
+                      ),
+                      textScaleFactor: 0.5,
+                    )),
+                SizedBox(height: 8),
+                Align(
+                  alignment: Alignment.topLeft,
+                  child: Text(
+                    "${_apartmentsList[index]['region']} ${_storesList[index]['city']}",
+                    style: TextStyle(fontSize: 15),
                   ),
-                  Icon(FontAwesomeIcons.bed, size: 20),
-                  SizedBox(width: 70),
-                  Text(
-                    "1 ",
-                    style: TextStyle(fontSize: 20),
-                  ),
-                  Icon(Icons.kitchen, size: 20),
-                  SizedBox(width: 70),
-                  Text(
-                    "3 ",
-                    style: TextStyle(fontSize: 20),
-                  ),
-                  Icon(FontAwesomeIcons.bath, size: 20),
-                  SizedBox(width: 70),
-                  Text(
-                    "200 ",
-                    style: TextStyle(fontSize: 20),
-                  ),
-                  Icon(Icons.space_dashboard, size: 20),
-                ],
-              ),
-              SizedBox(
-                height: 8,
-              )
-            ],
+                ),
+                SizedBox(height: 8),
+                Row(
+                  children: [
+                    Text(
+                      "${_storesList[index]['width']} ",
+                      style: TextStyle(fontSize: 20),
+                    ),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8.0),
+                      child: Image.asset(
+                        "assets/width.png",
+                        height: 25,
+                        width: 25,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    SizedBox(width: 112),
+                    Text(
+                      "${_storesList[index]['length']} ",
+                      style: TextStyle(fontSize: 20),
+                    ),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8.0),
+                      child: Image.asset(
+                        "assets/length.png",
+                        height: 25,
+                        width: 25,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    SizedBox(width: 100),
+                    Text(
+                      "${_storesList[index]['surface']} ",
+                      style: TextStyle(fontSize: 20),
+                    ),
+                    Icon(Icons.space_dashboard_sharp, size: 20),
+                  ],
+                ),
+                SizedBox(height: 5)
+              ],
+            ),
           ),
-        ),
-      );
+        );
+      });
 
-  Widget StoreCard() => Card(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(20),
-            topRight: Radius.circular(20),
+  Widget LandCard() => ListView.builder(
+      shrinkWrap: true,
+      itemCount: _landsLength,
+      itemBuilder: (context, index) {
+        return Card(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
           ),
-        ),
-        child: new InkWell(
-          onTap: () {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (context) => StoreDetails()));
-          },
-          child: Column(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(20),
-                    topRight: Radius.circular(20)),
-                child: Image.asset(
-                  "assets/store1.jpg",
-                  height: 150,
-                  width: 1000,
-                  fit: BoxFit.cover,
+          child: new InkWell(
+            onTap: () {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => LandDetails()));
+            },
+            child: Column(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(20),
+                      topRight: Radius.circular(20)),
+                  child: Image.network(
+                    "${_landsList[index]['image_url']}",
+                    height: 150,
+                    width: 1000,
+                    fit: BoxFit.cover,
+                  ),
                 ),
-              ),
-              SizedBox(height: 8),
-              Align(
-                alignment: Alignment.topLeft,
-                child: Text(
-                  "Magazin",
-                  style: TextStyle(fontSize: 15),
-                ),
-              ),
-              SizedBox(height: 8),
-              Align(
+                SizedBox(height: 8),
+                Align(
                   alignment: Alignment.topLeft,
-                  child: RichText(
-                    text: TextSpan(
-                      style: TextStyle(color: Colors.black, fontSize: 36),
-                      children: <TextSpan>[
-                        TextSpan(
-                            text: '15 000 ',
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 40)),
-                        TextSpan(text: 'MRU'),
-                        TextSpan(text: '/Mois'),
-                      ],
-                    ),
-                    textScaleFactor: 0.5,
-                  )),
-              SizedBox(height: 8),
-              Align(
-                alignment: Alignment.topLeft,
-                child: Text(
-                  "Nouakchott Tevraghe Zeina",
-                  style: TextStyle(fontSize: 15),
+                  child: Text(
+                    "Terrain",
+                    style: TextStyle(fontSize: 15),
+                  ),
                 ),
-              ),
-              SizedBox(height: 8),
-              Row(
-                children: [
-                  Text(
-                    "12 ",
-                    style: TextStyle(fontSize: 20),
-                  ),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8.0),
-                    child: Image.asset(
-                      "assets/width.png",
-                      height: 25,
-                      width: 25,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  SizedBox(width: 112),
-                  Text(
-                    "18 ",
-                    style: TextStyle(fontSize: 20),
-                  ),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8.0),
-                    child: Image.asset(
-                      "assets/length.png",
-                      height: 25,
-                      width: 25,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  SizedBox(width: 100),
-                  Text(
-                    "300 ",
-                    style: TextStyle(fontSize: 20),
-                  ),
-                  Icon(Icons.space_dashboard_sharp, size: 20),
-                ],
-              ),
-              SizedBox(height: 5)
-            ],
-          ),
-        ),
-      );
-
-  Widget LandCard() => Card(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(20),
-            topRight: Radius.circular(20),
-          ),
-        ),
-        child: new InkWell(
-          onTap: () {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (context) => LandDetails()));
-          },
-          child: Column(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(20),
-                    topRight: Radius.circular(20)),
-                child: Image.asset(
-                  "assets/land1.jpg",
-                  height: 150,
-                  width: 1000,
-                  fit: BoxFit.cover,
-                ),
-              ),
-              SizedBox(height: 8),
-              Align(
-                alignment: Alignment.topLeft,
-                child: Text(
-                  "Terrain",
-                  style: TextStyle(fontSize: 15),
-                ),
-              ),
-              SizedBox(height: 8),
-              Align(
+                SizedBox(height: 8),
+                Align(
+                    alignment: Alignment.topLeft,
+                    child: RichText(
+                      text: TextSpan(
+                        style: TextStyle(color: Colors.black, fontSize: 36),
+                        children: <TextSpan>[
+                          TextSpan(
+                              text: '${_landsList[index]['price']} ',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 40)),
+                          TextSpan(text: 'MRU'),
+                          TextSpan(text: '/Mois'),
+                        ],
+                      ),
+                      textScaleFactor: 0.5,
+                    )),
+                SizedBox(height: 8),
+                Align(
                   alignment: Alignment.topLeft,
-                  child: RichText(
-                    text: TextSpan(
-                      style: TextStyle(color: Colors.black, fontSize: 36),
-                      children: <TextSpan>[
-                        TextSpan(
-                            text: '15 000 ',
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 40)),
-                        TextSpan(text: 'MRU'),
-                        TextSpan(text: '/Mois'),
-                      ],
-                    ),
-                    textScaleFactor: 0.5,
-                  )),
-              SizedBox(height: 8),
-              Align(
-                alignment: Alignment.topLeft,
-                child: Text(
-                  "Nouakchott Tevraghe Zeina",
-                  style: TextStyle(fontSize: 15),
+                  child: Text(
+                    "${_landsList[index]['region']} ${_landsList[index]['city']}",
+                    style: TextStyle(fontSize: 15),
+                  ),
                 ),
-              ),
-              SizedBox(height: 8),
-              Row(
-                children: [
-                  Text(
-                    "12 ",
-                    style: TextStyle(fontSize: 20),
-                  ),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8.0),
-                    child: Image.asset(
-                      "assets/width.png",
-                      height: 25,
-                      width: 25,
-                      fit: BoxFit.cover,
+                SizedBox(height: 8),
+                Row(
+                  children: [
+                    Text(
+                      "${_landsList[index]['width']} ",
+                      style: TextStyle(fontSize: 20),
                     ),
-                  ),
-                  SizedBox(width: 112),
-                  Text(
-                    "18 ",
-                    style: TextStyle(fontSize: 20),
-                  ),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8.0),
-                    child: Image.asset(
-                      "assets/length.png",
-                      height: 25,
-                      width: 25,
-                      fit: BoxFit.cover,
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8.0),
+                      child: Image.asset(
+                        "assets/width.png",
+                        height: 25,
+                        width: 25,
+                        fit: BoxFit.cover,
+                      ),
                     ),
-                  ),
-                  SizedBox(width: 100),
-                  Text(
-                    "400 ",
-                    style: TextStyle(fontSize: 20),
-                  ),
-                  Icon(Icons.space_dashboard_sharp, size: 20),
-                ],
-              ),
-              SizedBox(height: 5)
-            ],
+                    SizedBox(width: 112),
+                    Text(
+                      "${_landsList[index]['length']} ",
+                      style: TextStyle(fontSize: 20),
+                    ),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8.0),
+                      child: Image.asset(
+                        "assets/length.png",
+                        height: 25,
+                        width: 25,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    SizedBox(width: 100),
+                    Text(
+                      "${_landsList[index]['surface']}",
+                      style: TextStyle(fontSize: 20),
+                    ),
+                    Icon(Icons.space_dashboard_sharp, size: 20),
+                  ],
+                ),
+                SizedBox(height: 5)
+              ],
+            ),
           ),
-        ),
-      );
+        );
+      });
 }

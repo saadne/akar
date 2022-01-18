@@ -1,3 +1,5 @@
+import 'package:akar_project/auth_screens/bottom_bar_nav.dart';
+import 'package:akar_project/auth_screens/profile_screen.dart';
 import 'package:akar_project/models/user_model.dart';
 import 'package:akar_project/auth_screens/login_screen.dart';
 import 'package:akar_project/pages/bottomBarNav.dart';
@@ -52,31 +54,47 @@ class _LogoutState extends State<Logout> {
                       fontWeight: FontWeight.bold),
                 ),
               ),
-              Text(
-                "Welcome Back",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(
-                height: 10,
-              ),
-              Text(
-                "${loggedInUser.fullName}",
-                style: TextStyle(
-                    color: Colors.black45, fontWeight: FontWeight.w500),
-              ),
-              Text(
-                "${loggedInUser.email}",
-                style: TextStyle(
-                    color: Colors.black45, fontWeight: FontWeight.w500),
-              ),
-              SizedBox(
-                height: 15,
-              ),
-              ActionChip(
-                label: Text("Logout"),
-                onPressed: () {
-                  logout(context);
-                },
+              Card(
+                child: Column(
+                  children: [
+                    SizedBox(height: 5),
+                    Text(
+                      "Are you sure ?",
+                      style: TextStyle(fontSize: 20),
+                    ),
+                    SizedBox(
+                      height: 20,
+                    ),
+                    Row(
+                      children: [
+                        RaisedButton(
+                          child: Text('Oui'),
+                          padding: const EdgeInsets.all(10),
+                          textColor: Colors.white,
+                          color: Colors.indigo[900],
+                          onPressed: () {
+                            logout(context);
+                          },
+                        ),
+                        SizedBox(
+                          width: 165,
+                        ),
+                        RaisedButton(
+                          child: Text('No'),
+                          padding: const EdgeInsets.all(10),
+                          textColor: Colors.white,
+                          color: Colors.indigo[900],
+                          onPressed: () {
+                            Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(
+                                    builder: (context) => NavBar()));
+                          },
+                        )
+                      ],
+                    ),
+                    SizedBox(height: 5),
+                  ],
+                ),
               )
             ],
           ),
@@ -91,3 +109,5 @@ class _LogoutState extends State<Logout> {
         .pushReplacement(MaterialPageRoute(builder: (context) => Dashboard()));
   }
 }
+
+class SizeBox {}

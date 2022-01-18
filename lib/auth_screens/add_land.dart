@@ -3,9 +3,9 @@ import 'package:akar_project/auth_screens/profile_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
+import 'package:image_picker/image_picker.dart' ;
+import 'package:path/path.dart' as path;
 
 // import 'login_screen.dart';
 
@@ -283,7 +283,7 @@ class _AddLandState extends State<AddLand> {
                                 color: Colors.black,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 15)),
-                        onPressed: () => uploadImage(),
+                        onPressed: () => chooseImage(),
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(18.0),
                             side: BorderSide(color: Colors.white)),
@@ -313,6 +313,7 @@ class _AddLandState extends State<AddLand> {
 
   Future<void> addLand() {
     User? user = _auth.currentUser;
+    uploadFile();
     // Call the user's CollectionReference to add a new user
     return lands
         .add({
@@ -323,7 +324,7 @@ class _AddLandState extends State<AddLand> {
           'width': widthController.text,
           'surface': surfaceController.text,
           'description': descriptionController.text,
-          'image_url': '',
+          'image_url': listImages,
           'added_by': user!.uid, // 42
         })
         .then((value) => Navigator.pushAndRemoveUntil(
@@ -333,32 +334,47 @@ class _AddLandState extends State<AddLand> {
         .catchError((error) => print("Failed to add houses: $error"));
   }
 
-  uploadImage() async {
-    final _storage = FirebaseStorage.instance;
-    final _picker = ImagePicker();
-    PickedFile image;
-    await Permission.photos.request();
-    var permissionStatus = await Permission.photos.status;
+  final picker = ImagePicker();
+  List <File> image_url = [];
+  List listImages = [];
+  late firebase_storage.Reference ref;
 
-    if (permissionStatus.isGranted) {
-      image = (await _picker.getImage(source: ImageSource.gallery))!;
+  chooseImage() async {
+    final PickedFile = await  picker.getImage(source: ImageSource.gallery);
+    setState(() {
+      image_url.add(File(PickedFile!.path));
+    });
+    if(PickedFile!.path == null ) ;
+  }
 
-      var file = File(image.path);
-      if (image != null) {
-        var snapshot = await _storage
-            .ref()
-            .child('folderName/imageName')
-            .putFile(file)
-            .whenComplete(() => null);
-        var downloadUrl = await snapshot.ref.getDownloadURL();
-        setState(() {
-          imageUrl = downloadUrl;
-        });
-      } else {
-        print("No path received");
-      }
-    } else {
-      print("Permision and try again");
+  Future<void> retrievedData() async {
+    final LostData response = await picker.getLostData();
+    if(response.isEmpty){
+      return;
+    }
+    if(response.file != null){
+      setState(() {
+        image_url.add(File(response.file!.path));
+      });
+    }else{
+      print(response.file);
     }
   }
+
+  Future uploadFile() async {
+    for(var img in image_url){
+      ref = firebase_storage.FirebaseStorage.instance
+          .ref()
+          .child('images_lands/${path.basename(img.path)}');
+      await ref.putFile(img).whenComplete(() async {
+        await ref.getDownloadURL().then((value) {
+          setState(() {
+            listImages.add(value);
+          });
+        });
+      });
+    }
+  }
+
+  
 }

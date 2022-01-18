@@ -3,11 +3,11 @@ import 'package:akar_project/auth_screens/profile_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:image_picker/image_picker.dart';
-import 'package:permission_handler/permission_handler.dart';
-
-// import 'login_screen.dart';
+import 'package:path/path.dart' as path;
+import 'package:geolocator/geolocator.dart';
+import 'package:awesome_dialog/awesome_dialog.dart';
 
 class AddHouse extends StatefulWidget {
   const AddHouse({Key? key}) : super(key: key);
@@ -20,6 +20,7 @@ class _AddHouseState extends State<AddHouse> {
   final _auth = FirebaseAuth.instance;
   final _formKey = GlobalKey<FormState>();
   late String imageUrl;
+  late Position cl;
 
   final TextEditingController regionController = new TextEditingController();
   final TextEditingController cityController = new TextEditingController();
@@ -384,7 +385,26 @@ class _AddHouseState extends State<AddHouse> {
                                 color: Colors.black,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 15)),
-                        onPressed: () => uploadImage(),
+                        onPressed: () => chooseImage(),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(18.0),
+                            side: BorderSide(color: Colors.white)),
+                        elevation: 5.0,
+                        color: Colors.white,
+                        textColor: Colors.white,
+                        padding: EdgeInsets.fromLTRB(120, 12, 120, 12),
+                        splashColor: Colors.grey,
+                      ),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      RaisedButton(
+                        child: Text("Localisation",
+                            style: TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15)),
+                        onPressed: () => getLatAndLong(),
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(18.0),
                             side: BorderSide(color: Colors.white)),
@@ -414,6 +434,7 @@ class _AddHouseState extends State<AddHouse> {
 
   Future<void> addHouse() {
     User? user = _auth.currentUser;
+    uploadFile();
     // Call the user's CollectionReference to add a new user
     return houses
         .add({
@@ -427,8 +448,9 @@ class _AddHouseState extends State<AddHouse> {
           'surface': surfaceController.text,
           'meubler': meublerController.text,
           'floorNumber': floorNumberController.text,
-          'image_url': '',
+          'image_url': imagesList,
           'description': descriptionController.text,
+          'location': GeoPoint(cl.latitude, cl.longitude),
           'added_by': user!.uid, // 42
         })
         .then((value) => Navigator.pushAndRemoveUntil(
@@ -438,32 +460,84 @@ class _AddHouseState extends State<AddHouse> {
         .catchError((error) => print("Failed to add houses: $error"));
   }
 
-  uploadImage() async {
-    final _storage = FirebaseStorage.instance;
-    final _picker = ImagePicker();
-    PickedFile image;
-    await Permission.photos.request();
-    var permissionStatus = await Permission.photos.status;
+  final picker = ImagePicker();
+  List<File> image_url = [];
+  List imagesList = [];
+  late firebase_storage.Reference ref;
 
-    if (permissionStatus.isGranted) {
-      image = (await _picker.getImage(source: ImageSource.gallery))!;
+  chooseImage() async {
+    final PickedFile = await picker.getImage(source: ImageSource.gallery);
+    setState(() {
+      image_url.add(File(PickedFile!.path));
+    });
+    if (PickedFile!.path == null) ;
+  }
 
-      var file = File(image.path);
-      if (image != null) {
-        var snapshot = await _storage
-            .ref()
-            .child('folderName/imageName')
-            .putFile(file)
-            .whenComplete(() => null);
-        var downloadUrl = await snapshot.ref.getDownloadURL();
-        setState(() {
-          imageUrl = downloadUrl;
-        });
-      } else {
-        print("No path received");
-      }
-    } else {
-      print("Permision and try again");
+  Future<void> retrievedData() async {
+    final LostData response = await picker.getLostData();
+    if (response.isEmpty) {
+      return;
     }
+    if (response.file != null) {
+      setState(() {
+        image_url.add(File(response.file!.path));
+      });
+    } else {
+      print(response.file);
+    }
+  }
+
+  Future uploadFile() async {
+    for (var img in image_url) {
+      ref = firebase_storage.FirebaseStorage.instance
+          .ref()
+          .child('images_houses/${path.basename(img.path)}');
+      await ref.putFile(img).whenComplete(() async {
+        await ref.getDownloadURL().then((value) {
+          setState(() {
+            imagesList.add(value);
+          });
+        });
+      });
+    }
+  }
+
+  Future getPosition() async {
+    bool services;
+    LocationPermission per;
+
+    // var distanceBetween = Geolocator.distanceBetween(
+    //      cl.altitude, cl.longitude, 32.671749, 55.320313) /
+    //  1000;
+
+    services = await Geolocator.isLocationServiceEnabled();
+    print(services);
+    if (services == false) {
+      AwesomeDialog(
+        context: context,
+        dialogType: DialogType.INFO,
+        animType: AnimType.BOTTOMSLIDE,
+        title: 'services off',
+        desc: 'please enable services',
+        btnCancelOnPress: () {},
+        btnOkOnPress: () {},
+      )..show();
+    }
+    per = await Geolocator.checkPermission();
+    if (per == LocationPermission.denied) {
+      per = await Geolocator.requestPermission();
+      if (per == LocationPermission.always ||
+          per == LocationPermission.whileInUse) {
+        // getLatAndLong();
+      }
+    }
+    print("mmmmmmmmmm");
+    print(per);
+    print("mmmmmmmmmmmmmmmm");
+    // print(services);
+  }
+
+  Future<Position> getLatAndLong() async {
+    return cl = await Geolocator.getCurrentPosition().then((value) => value);
   }
 }

@@ -38,7 +38,7 @@ class _AddPropertyState extends State<AddProperty> {
                 children: [
                   Container(
                     height: 300,
-                    width: 200,
+                    width: 195,
                     child: Card(
                       elevation: 5,
                       margin: EdgeInsets.all(10),
@@ -76,11 +76,11 @@ class _AddPropertyState extends State<AddProperty> {
                     ),
                   ),
                   SizedBox(
-                    width: 10,
+                    width: 0,
                   ),
                   Container(
                     height: 300,
-                    width: 200,
+                    width: 195,
                     child: Card(
                       elevation: 5,
                       margin: EdgeInsets.all(10),
@@ -123,7 +123,7 @@ class _AddPropertyState extends State<AddProperty> {
                 children: [
                   Container(
                     height: 300,
-                    width: 200,
+                    width: 195,
                     child: Card(
                       elevation: 5,
                       margin: EdgeInsets.all(10),
@@ -161,11 +161,11 @@ class _AddPropertyState extends State<AddProperty> {
                     ),
                   ),
                   SizedBox(
-                    width: 10,
+                    width: 0,
                   ),
                   Container(
                     height: 300,
-                    width: 200,
+                    width: 195,
                     child: Card(
                       elevation: 5,
                       margin: EdgeInsets.all(10),

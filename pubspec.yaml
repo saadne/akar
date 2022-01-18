@@ -36,8 +36,8 @@ dependencies:
   font_awesome_flutter: ^9.2.0
   firebase_storage: ^10.2.4
   image_picker: ^0.8.4+4
-  permission_handler: ^8.2.6
-
+  geolocator: ^8.0.3
+  awesome_dialog: ^2.1.2
 
   
 

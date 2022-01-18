@@ -1,5 +1,4 @@
 import 'package:akar_project/pages/bottomBarNav.dart';
-import 'package:akar_project/auth_screens/login_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 

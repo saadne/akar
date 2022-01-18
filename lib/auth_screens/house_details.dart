@@ -233,7 +233,7 @@ class _HouseDetailsState extends State<HouseDetails> {
                     padding: EdgeInsets.all(9),
                     splashColor: Colors.grey,
                   ),
-                  SizedBox(width: 183),
+                  SizedBox(width: 160),
                   RaisedButton(
                     child: Text(
                       "Supprimer",
